@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>안산대학교 모집정원 분석 대시보드</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f5f5f3; color: #1a1a1a; }
+  header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+  header span { font-size: 13px; color: #888; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px 24px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat { background: #fff; border-radius: 10px; padding: 16px; border: 1px solid #ebebeb; }
+  .stat-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+  .stat-val { font-size: 24px; font-weight: 600; }
+  .filters { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .filters label { font-size: 13px; color: #555; }
+  select { font-size: 13px; padding: 6px 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
+  .btn-ai { margin-left: auto; font-size: 13px; padding: 7px 16px; border: 1px solid #7F77DD; border-radius: 8px; background: #7F77DD; color: #fff; cursor: pointer; }
+  .btn-ai:hover { background: #534AB7; }
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .chart-card { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #ebebeb; }
+  .chart-card.full { grid-column: 1 / -1; }
+  .chart-title { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 14px; }
+  .table-card { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #ebebeb; margin-bottom: 20px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  th { text-align: left; padding: 8px 10px; font-size: 12px; font-weight: 500; color: #888; border-bottom: 1px solid #eee; }
+  td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
+  .badge.good { background: #E1F5EE; color: #085041; }
+  .badge.warn { background: #FAEEDA; color: #633806; }
+  .badge.bad  { background: #FAECE7; color: #712B13; }
+  footer { text-align: center; padding: 24px; font-size: 12px; color: #bbb; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>안산대학교 — 모집정원 분석 대시보드</h1>
+  <span id="last-updated">2024학년도 기준</span>
+</header>
+
+<div class="container">
+  <div class="stats" id="stat-cards"></div>
+
+  <div class="filters">
+    <label>연도</label>
+    <select id="sel-year" onchange="render()">
+      <option value="2024">2024</option>
+      <option value="2023">2023</option>
+      <option value="2022">2022</option>
+    </select>
+    <label>계열</label>
+    <select id="sel-dept" onchange="render()">
+      <option value="all">전체</option>
+      <option value="공학">공학계열</option>
+      <option value="보건">보건계열</option>
+      <option value="경영">경영계열</option>
+      <option value="예술">예술계열</option>
+    </select>
+    <label>정렬</label>
+    <select id="sel-sort" onchange="render()">
+      <option value="rate_asc">충원율 낮은순</option>
+      <option value="rate_desc">충원율 높은순</option>
+      <option value="quota_desc">정원 많은순</option>
+    </select>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">학과별 모집정원 vs 입학자수</div>
+      <div style="position:relative;height:240px"><canvas id="chart-bar"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">계열별 정원 비중</div>
+      <div style="position:relative;height:240px"><canvas id="chart-pie"></canvas></div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">연도별 충원율 추이</div>
+      <div style="position:relative;height:180px"><canvas id="chart-line"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="chart-title" style="margin-bottom:12px">학과별 상세 현황</div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:20%">학과명</th>
+          <th style="width:11%">계열</th>
+          <th style="width:12%">모집정원</th>
+          <th style="width:12%">입학자수</th>
+          <th style="width:11%">충원율</th>
+          <th style="width:12%">전년대비</th>
+          <th style="width:10%">미충원</th>
+          <th style="width:12%">상태</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>안산대학교 전략기획처 &nbsp;|&nbsp; 본 대시보드는 샘플 데이터 기반입니다. 실제 데이터로 교체 후 사용하세요.</footer>
+
+<script>
+const raw = [
+  {dept:'간호학과',     cat:'보건', q:{2024:80,2023:80,2022:80}, e:{2024:79,2023:77,2022:75}},
+  {dept:'물리치료학과', cat:'보건', q:{2024:60,2023:60,2022:55}, e:{2024:58,2023:56,2022:52}},
+  {dept:'치위생학과',   cat:'보건', q:{2024:50,2023:50,2022:50}, e:{2024:47,2023:44,2022:43}},
+  {dept:'기계공학과',   cat:'공학', q:{2024:70,2023:75,2022:75}, e:{2024:62,2023:65,2022:68}},
+  {dept:'전기전자과',   cat:'공학', q:{2024:65,2023:65,2022:70}, e:{2024:55,2023:58,2022:63}},
+  {dept:'컴퓨터공학과', cat:'공학', q:{2024:80,2023:75,2022:70}, e:{2024:78,2023:73,2022:67}},
+  {dept:'경영학과',     cat:'경영', q:{2024:90,2023:90,2022:95}, e:{2024:81,2023:79,2022:82}},
+  {dept:'세무회계과',   cat:'경영', q:{2024:55,2023:60,2022:60}, e:{2024:44,2023:50,2022:52}},
+  {dept:'시각디자인과', cat:'예술', q:{2024:45,2023:45,2022:50}, e:{2024:42,2023:40,2022:44}},
+  {dept:'실내건축과',   cat:'예술', q:{2024:40,2023:40,2022:45}, e:{2024:30,2023:33,2022:38}},
+];
+
+let barChart, pieChart, lineChart;
+
+function getFiltered() {
+  const yr = +document.getElementById('sel-year').value;
+  const cat = document.getElementById('sel-dept').value;
+  const sort = document.getElementById('sel-sort').value;
+  let data = raw
+    .filter(d => cat === 'all' || d.cat === cat)
+    .map(d => ({
+      dept: d.dept, cat: d.cat,
+      quota: d.q[yr], enrolled: d.e[yr],
+      rate: Math.round(d.e[yr] / d.q[yr] * 100),
+      prevRate: yr > 2022 ? Math.round(d.e[yr-1] / d.q[yr-1] * 100) : null
+    }));
+  if (sort === 'rate_asc')   data.sort((a,b) => a.rate - b.rate);
+  if (sort === 'rate_desc')  data.sort((a,b) => b.rate - a.rate);
+  if (sort === 'quota_desc') data.sort((a,b) => b.quota - a.quota);
+  return data;
+}
+
+function statusBadge(rate) {
+  if (rate >= 90) return '<span class="badge good">우수</span>';
+  if (rate >= 75) return '<span class="badge warn">보통</span>';
+  return '<span class="badge bad">미달</span>';
+}
+
+function render() {
+  const data = getFiltered();
+  const yr = +document.getElementById('sel-year').value;
+  document.getElementById('last-updated').textContent = yr + '학년도 기준';
+
+  const totalQ = data.reduce((s,d) => s + d.quota, 0);
+  const totalE = data.reduce((s,d) => s + d.enrolled, 0);
+  const avgRate = Math.round(totalE / totalQ * 100);
+  const badCount = data.filter(d => d.rate < 75).length;
+  document.getElementById('stat-cards').innerHTML = `
+    <div class="stat"><div class="stat-label">총 모집정원</div><div class="stat-val">${totalQ.toLocaleString()}명</div></div>
+    <div class="stat"><div class="stat-label">총 입학자수</div><div class="stat-val">${totalE.toLocaleString()}명</div></div>
+    <div class="stat"><div class="stat-label">평균 충원율</div><div class="stat-val" style="color:${avgRate>=85?'#1D9E75':avgRate>=75?'#BA7517':'#D85A30'}">${avgRate}%</div></div>
+    <div class="stat"><div class="stat-label">미달 학과</div><div class="stat-val" style="color:${badCount>0?'#D85A30':'#1D9E75'}">${badCount}개</div></div>
+  `;
+
+  document.getElementById('tbl-body').innerHTML = data.map(d => {
+    const diff = d.prevRate != null ? d.rate - d.prevRate : null;
+    const diffStr = diff != null ? (diff > 0 ? `+${diff}%` : diff === 0 ? '0%' : `${diff}%`) : '-';
+    const diffColor = diff != null ? (diff > 0 ? '#1D9E75' : diff < 0 ? '#D85A30' : '#888') : '#888';
+    const miss = Math.max(0, d.quota - d.enrolled);
+    return `<tr>
+      <td>${d.dept}</td>
+      <td>${d.cat}</td>
+      <td>${d.quota}명</td>
+      <td>${d.enrolled}명</td>
+      <td style="font-weight:600;color:${d.rate>=90?'#1D9E75':d.rate>=75?'#BA7517':'#D85A30'}">${d.rate}%</td>
+      <td style="color:${diffColor}">${diffStr}</td>
+      <td style="color:${miss>0?'#D85A30':'#1D9E75'}">${miss > 0 ? miss+'명' : '-'}</td>
+      <td>${statusBadge(d.rate)}</td>
+    </tr>`;
+  }).join('');
+
+  if (barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById('chart-bar'), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.dept.replace('학과','').replace('과','')),
+      datasets: [
+        { label: '모집정원', data: data.map(d => d.quota), backgroundColor: '#AFA9EC' },
+        { label: '입학자수', data: data.map(d => d.enrolled), backgroundColor: '#1D9E75' },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } } },
+      scales: {
+        x: { ticks: { font: { size: 10 }, maxRotation: 35, autoSkip: false } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  const catMap = {};
+  data.forEach(d => { catMap[d.cat] = (catMap[d.cat] || 0) + d.quota; });
+  const catKeys = Object.keys(catMap);
+  if (pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById('chart-pie'), {
+    type: 'doughnut',
+    data: {
+      labels: catKeys,
+      datasets: [{ data: catKeys.map(k => catMap[k]), backgroundColor: ['#7F77DD','#1D9E75','#EF9F27','#D4537E'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10, boxWidth: 10 } } }
+    }
+  });
+
+  const years = [2022, 2023, 2024];
+  const lineColors = ['#7F77DD','#1D9E75','#EF9F27','#D4537E','#378ADD','#D85A30'];
+  const lineDatasets = data.slice(0, 5).map((d, i) => ({
+    label: d.dept.replace('학과','').replace('과',''),
+    data: years.map(y => {
+      const r = raw.find(x => x.dept === d.dept);
+      return Math.round(r.e[y] / r.q[y] * 100);
+    }),
+    borderColor: lineColors[i], backgroundColor: 'transparent',
+    tension: 0.3, pointRadius: 4, borderWidth: 2
+  }));
+  if (lineChart) lineChart.destroy();
+  lineChart = new Chart(document.getElementById('chart-line'), {
+    type: 'line',
+    data: { labels: years.map(String), datasets: lineDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { font: { size: 11 }, padding: 8, boxWidth: 10 } } },
+      scales: {
+        y: { min: 50, max: 105, ticks: { font: { size: 11 }, callback: v => v + '%' } },
+        x: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
