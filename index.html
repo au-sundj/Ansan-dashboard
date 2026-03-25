@@ -3,244 +3,441 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>안산대학교 모집정원 분석 대시보드</title>
+<title>안산대학교 2027 학과개편 분석 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif; background: #f5f5f3; color: #1a1a1a; }
-  header { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
-  header h1 { font-size: 18px; font-weight: 600; color: #1a1a1a; }
-  header span { font-size: 13px; color: #888; }
-  .container { max-width: 1100px; margin: 0 auto; padding: 24px 24px; }
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-  .stat { background: #fff; border-radius: 10px; padding: 16px; border: 1px solid #ebebeb; }
-  .stat-label { font-size: 12px; color: #888; margin-bottom: 6px; }
-  .stat-val { font-size: 24px; font-weight: 600; }
-  .filters { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-  .filters label { font-size: 13px; color: #555; }
-  select { font-size: 13px; padding: 6px 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
-  .btn-ai { margin-left: auto; font-size: 13px; padding: 7px 16px; border: 1px solid #7F77DD; border-radius: 8px; background: #7F77DD; color: #fff; cursor: pointer; }
-  .btn-ai:hover { background: #534AB7; }
-  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .chart-card { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #ebebeb; }
-  .chart-card.full { grid-column: 1 / -1; }
-  .chart-title { font-size: 14px; font-weight: 500; color: #333; margin-bottom: 14px; }
-  .table-card { background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #ebebeb; margin-bottom: 20px; overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-  th { text-align: left; padding: 8px 10px; font-size: 12px; font-weight: 500; color: #888; border-bottom: 1px solid #eee; }
-  td { padding: 9px 10px; border-bottom: 1px solid #f0f0f0; color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #fafafa; }
-  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 500; }
-  .badge.good { background: #E1F5EE; color: #085041; }
-  .badge.warn { background: #FAEEDA; color: #633806; }
-  .badge.bad  { background: #FAECE7; color: #712B13; }
-  footer { text-align: center; padding: 24px; font-size: 12px; color: #bbb; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#f4f4f2;color:#1a1a1a;font-size:14px}
+header{background:#1a1a2e;color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:16px;font-weight:500;letter-spacing:-0.3px}
+header span{font-size:12px;color:#aaa}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.stat{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #ebebeb}
+.stat-label{font-size:11px;color:#888;margin-bottom:5px}
+.stat-val{font-size:22px;font-weight:600}
+.filters{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;background:#fff;padding:12px 16px;border-radius:10px;border:1px solid #ebebeb}
+.filters label{font-size:12px;color:#555}
+select,input[type=text]{font-size:12px;padding:5px 10px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;height:30px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:5px;font-weight:500;white-space:nowrap}
+.badge.good{background:#E1F5EE;color:#085041}
+.badge.warn{background:#FAEEDA;color:#633806}
+.badge.bad{background:#FAECE7;color:#712B13}
+.badge.na{background:#f0f0f0;color:#888}
+.charts-row{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:16px}
+.chart-card{background:#fff;border-radius:10px;padding:18px;border:1px solid #ebebeb}
+.chart-card.full{grid-column:1/-1}
+.chart-title{font-size:13px;font-weight:500;color:#333;margin-bottom:12px}
+.table-card{background:#fff;border-radius:10px;padding:18px;border:1px solid #ebebeb;margin-bottom:16px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{text-align:left;padding:7px 8px;font-size:11px;font-weight:500;color:#888;border-bottom:1px solid #eee;white-space:nowrap}
+td{padding:8px 8px;border-bottom:1px solid #f0f0f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:hover td{background:#fafafa}
+tr:last-child td{border-bottom:none}
+.sim-bar{display:flex;align-items:center;gap:6px}
+.sim-bar-track{flex:1;height:5px;background:#eee;border-radius:3px;min-width:60px}
+.sim-bar-fill{height:100%;border-radius:3px}
+.tab-row{display:flex;gap:4px;margin-bottom:14px}
+.tab{padding:6px 14px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;color:#555}
+.tab.active{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.panel{display:none}.panel.active{display:block}
+footer{text-align:center;padding:20px;font-size:11px;color:#bbb}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-size:11px;color:#666}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>안산대학교 — 모집정원 분석 대시보드</h1>
-  <span id="last-updated">2024학년도 기준</span>
+  <h1>안산대학교 — 2027학년도 학과개편 분석 대시보드</h1>
+  <span>취업률 · 재학생충원율 · 신입생충원율 기반 시뮬레이션</span>
 </header>
 
 <div class="container">
   <div class="stats" id="stat-cards"></div>
 
   <div class="filters">
-    <label>연도</label>
-    <select id="sel-year" onchange="render()">
-      <option value="2024">2024</option>
-      <option value="2023">2023</option>
-      <option value="2022">2022</option>
-    </select>
     <label>계열</label>
-    <select id="sel-dept" onchange="render()">
+    <select id="sel-cat" onchange="render()">
       <option value="all">전체</option>
-      <option value="공학">공학계열</option>
-      <option value="보건">보건계열</option>
-      <option value="경영">경영계열</option>
-      <option value="예술">예술계열</option>
+      <option value="자연과학">자연과학</option>
+      <option value="인문사회">인문사회</option>
+      <option value="공학">공학</option>
+      <option value="예체능">예체능</option>
+    </select>
+    <label>시뮬</label>
+    <select id="sel-sim" onchange="render()">
+      <option value="시뮬1">시뮬1 (만족도+재학율+취업율)</option>
+      <option value="시뮬2">시뮬2 (만족도 제외)</option>
+      <option value="시뮬3">시뮬3 (만족도·취업율 제외)</option>
     </select>
     <label>정렬</label>
     <select id="sel-sort" onchange="render()">
-      <option value="rate_asc">충원율 낮은순</option>
-      <option value="rate_desc">충원율 높은순</option>
+      <option value="sim_asc">점수 낮은순</option>
+      <option value="sim_desc">점수 높은순</option>
       <option value="quota_desc">정원 많은순</option>
     </select>
   </div>
 
-  <div class="charts-row">
-    <div class="chart-card">
-      <div class="chart-title">학과별 모집정원 vs 입학자수</div>
-      <div style="position:relative;height:240px"><canvas id="chart-bar"></canvas></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="switchTab('overview')">전체 현황</button>
+    <button class="tab" onclick="switchTab('sim')">시뮬레이션</button>
+    <button class="tab" onclick="switchTab('risk')">위험도 분석</button>
+  </div>
+
+  <div class="panel active" id="panel-overview">
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">학과별 재학생충원율 (2026학년도 1학기)</div>
+        <div style="position:relative;height:280px"><canvas id="chart-bar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">계열별 학과 수 및 정원</div>
+        <div style="position:relative;height:280px"><canvas id="chart-pie"></canvas></div>
+      </div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">계열별 정원 비중</div>
-      <div style="position:relative;height:240px"><canvas id="chart-pie"></canvas></div>
-    </div>
-    <div class="chart-card full">
-      <div class="chart-title">연도별 충원율 추이</div>
-      <div style="position:relative;height:180px"><canvas id="chart-line"></canvas></div>
+    <div class="table-card">
+      <div class="chart-title">학과별 상세 현황</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:6%">계열</th>
+            <th style="width:14%">학과명</th>
+            <th style="width:5%">학제</th>
+            <th style="width:6%">정원</th>
+            <th style="width:9%">신입충원 24</th>
+            <th style="width:9%">신입충원 25</th>
+            <th style="width:9%">신입충원 26</th>
+            <th style="width:8%">취업률</th>
+            <th style="width:9%">재학충원 25-1</th>
+            <th style="width:9%">재학충원 26-1</th>
+            <th style="width:8%">시뮬점수</th>
+            <th style="width:8%">상태</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
     </div>
   </div>
 
-  <div class="table-card">
-    <div class="chart-title" style="margin-bottom:12px">학과별 상세 현황</div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width:20%">학과명</th>
-          <th style="width:11%">계열</th>
-          <th style="width:12%">모집정원</th>
-          <th style="width:12%">입학자수</th>
-          <th style="width:11%">충원율</th>
-          <th style="width:12%">전년대비</th>
-          <th style="width:10%">미충원</th>
-          <th style="width:12%">상태</th>
-        </tr>
-      </thead>
-      <tbody id="tbl-body"></tbody>
-    </table>
+  <div class="panel" id="panel-sim">
+    <div class="chart-card full" style="margin-bottom:14px">
+      <div class="chart-title">시뮬레이션 점수 비교 (시뮬1 vs 시뮬2 vs 시뮬3)</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:#7F77DD"></span>시뮬1 (만족도+재학율+취업율)</span>
+        <span><span class="legend-dot" style="background:#1D9E75"></span>시뮬2 (만족도 제외)</span>
+        <span><span class="legend-dot" style="background:#EF9F27"></span>시뮬3 (만족도·취업율 제외)</span>
+      </div>
+      <div style="position:relative;height:340px"><canvas id="chart-sim"></canvas></div>
+    </div>
+    <div class="table-card">
+      <div class="chart-title">시뮬레이션 순위표</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:4%">순위</th>
+            <th style="width:7%">계열</th>
+            <th style="width:16%">학과명</th>
+            <th style="width:6%">정원</th>
+            <th style="width:20%">시뮬1 점수</th>
+            <th style="width:20%">시뮬2 점수</th>
+            <th style="width:20%">시뮬3 점수</th>
+            <th style="width:7%">평가</th>
+          </tr>
+        </thead>
+        <tbody id="sim-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-risk">
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">위험 학과 — 신입생충원율 하위권 (2025~2026)</div>
+        <div style="position:relative;height:260px"><canvas id="chart-risk"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">취업률 현황</div>
+        <div style="position:relative;height:260px"><canvas id="chart-job"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="chart-title">위험도 종합 분석</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:7%">계열</th>
+            <th style="width:15%">학과명</th>
+            <th style="width:10%">정원</th>
+            <th style="width:11%">신입충원 25</th>
+            <th style="width:11%">신입충원 26</th>
+            <th style="width:10%">취업률</th>
+            <th style="width:11%">재학충원 26-1</th>
+            <th style="width:11%">시뮬2점수</th>
+            <th style="width:14%">위험도</th>
+          </tr>
+        </thead>
+        <tbody id="risk-tbl"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<footer>안산대학교 전략기획처 &nbsp;|&nbsp; 본 대시보드는 샘플 데이터 기반입니다. 실제 데이터로 교체 후 사용하세요.</footer>
+<footer>안산대학교 전략기획처 &nbsp;|&nbsp; 2027학년도 학과개편 준비 자료 기반 · 데이터 기준일: 2024.12</footer>
 
 <script>
-const raw = [
-  {dept:'간호학과',     cat:'보건', q:{2024:80,2023:80,2022:80}, e:{2024:79,2023:77,2022:75}},
-  {dept:'물리치료학과', cat:'보건', q:{2024:60,2023:60,2022:55}, e:{2024:58,2023:56,2022:52}},
-  {dept:'치위생학과',   cat:'보건', q:{2024:50,2023:50,2022:50}, e:{2024:47,2023:44,2022:43}},
-  {dept:'기계공학과',   cat:'공학', q:{2024:70,2023:75,2022:75}, e:{2024:62,2023:65,2022:68}},
-  {dept:'전기전자과',   cat:'공학', q:{2024:65,2023:65,2022:70}, e:{2024:55,2023:58,2022:63}},
-  {dept:'컴퓨터공학과', cat:'공학', q:{2024:80,2023:75,2022:70}, e:{2024:78,2023:73,2022:67}},
-  {dept:'경영학과',     cat:'경영', q:{2024:90,2023:90,2022:95}, e:{2024:81,2023:79,2022:82}},
-  {dept:'세무회계과',   cat:'경영', q:{2024:55,2023:60,2022:60}, e:{2024:44,2023:50,2022:52}},
-  {dept:'시각디자인과', cat:'예술', q:{2024:45,2023:45,2022:50}, e:{2024:42,2023:40,2022:44}},
-  {dept:'실내건축과',   cat:'예술', q:{2024:40,2023:40,2022:45}, e:{2024:30,2023:33,2022:38}},
+const data = [
+  {계열:'자연과학',학과:'간호학과',학제:4,정원:180,신입24:1,신입25:1,신입26:1,취업:77.5,재학25_1:92.8,재학26_1:95.6,시뮬1:86.1,시뮬2:94.56,시뮬3:97.53},
+  {계열:'자연과학',학과:'임상병리학과',학제:3,정원:90,신입24:1,신입25:1,신입26:1,취업:76.5,재학25_1:98.9,재학26_1:101.5,시뮬1:86.73,시뮬2:95.32,시뮬3:98.62},
+  {계열:'자연과학',학과:'방사선학과',학제:3,정원:68,신입24:1,신입25:1,신입26:1,취업:91.2,재학25_1:95.6,재학26_1:106.4,시뮬1:87.7,시뮬2:96.91,시뮬3:97.87},
+  {계열:'자연과학',학과:'물리치료학과',학제:3,정원:80,신입24:1,신입25:1,신입26:1,취업:82.2,재학25_1:94.6,재학26_1:100.4,시뮬1:87.31,시뮬2:96.19,시뮬3:98.63},
+  {계열:'자연과학',학과:'뷰티아트과',학제:2,정원:30,신입24:1,신입25:1,신입26:1,취업:61.5,재학25_1:101.5,재학26_1:96.7,시뮬1:85.22,시뮬2:93.06,시뮬3:98.6},
+  {계열:'자연과학',학과:'의료미용과',학제:2,정원:27,신입24:1,신입25:0.9643,신입26:1,취업:65.4,재학25_1:89.7,재학26_1:98.2,시뮬1:82.63,시뮬2:90.08,시뮬3:94.35},
+  {계열:'자연과학',학과:'보건의료정보학과',학제:3,정원:60,신입24:1,신입25:1,신입26:1,취업:64.1,재학25_1:83.3,재학26_1:88.9,시뮬1:83.07,시뮬2:90.44,시뮬3:94.99},
+  {계열:'자연과학',학과:'식품영양학과',학제:3,정원:33,신입24:1,신입25:1,신입26:1,취업:68.2,재학25_1:75.9,재학26_1:84.2,시뮬1:80.98,시뮬2:87.93,시뮬3:91.24},
+  {계열:'자연과학',학과:'호텔조리학과',학제:3,정원:40,신입24:1,신입25:1,신입26:1,취업:66.7,재학25_1:81.7,재학26_1:86.7,시뮬1:82.26,시뮬2:89.49,시뮬3:93.39},
+  {계열:'자연과학',학과:'언어치료재활아동학과',학제:3,정원:27,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:75.3,재학26_1:80.5,시뮬1:74.24,시뮬2:77.8,시뮬3:91.36},
+  {계열:'자연과학',학과:'응급구조학과',학제:3,정원:60,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:90,재학26_1:80,시뮬1:76.67,시뮬2:80.84,시뮬3:95.0},
+  {계열:'자연과학',학과:'치위생학과',학제:3,정원:31,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:84,재학26_1:90.1,시뮬1:76.4,시뮬2:80.5,시뮬3:94.6},
+  {계열:'자연과학',학과:'동물교감케어학과',학제:2,정원:24,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:92.5,재학26_1:102.3,시뮬1:78.5,시뮬2:83.12,시뮬3:97.75},
+  {계열:'자연과학',학과:'푸드테라피학과',학제:2,정원:20,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:85,재학26_1:97.5,시뮬1:76.75,시뮬2:80.94,시뮬3:95.12},
+  {계열:'자연과학',학과:'자율전공학과',학제:2,정원:25,신입24:null,신입25:1,신입26:1,취업:null,재학25_1:100,재학26_1:50,시뮬1:64,시뮬2:66.5,시뮬3:78},
+  {계열:'인문사회',학과:'유아교육과',학제:3,정원:42,신입24:0.9138,신입25:0.86,신입26:1,취업:83.8,재학25_1:70.3,재학26_1:72,시뮬1:78.71,시뮬2:86.25,시뮬3:86.51},
+  {계열:'인문사회',학과:'사회복지학과',학제:3,정원:55,신입24:1,신입25:1,신입26:1,취업:78.3,재학25_1:82.4,재학26_1:82.4,시뮬1:83.72,시뮬2:91.61,시뮬3:93.84},
+  {계열:'인문사회',학과:'항공관광학과',학제:2,정원:25,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:75,재학26_1:100,시뮬1:0,시뮬2:77.19,시뮬3:90.62},
+  {계열:'인문사회',학과:'호텔관광학과',학제:2,정원:30,신입24:1,신입25:1,신입26:1,취업:43.5,재학25_1:108.3,재학26_1:98.3,시뮬1:83.68,시뮬2:90.69,시뮬3:99.0},
+  {계열:'인문사회',학과:'마케팅경영학과',학제:2,정원:40,신입24:null,신입25:1,신입26:1,취업:null,재학25_1:95.7,재학26_1:85,시뮬1:71.14,시뮬2:75.42,시뮬3:88.71},
+  {계열:'인문사회',학과:'회계세무학과',학제:2,정원:57,신입24:1,신입25:0.9846,신입26:1,취업:null,재학25_1:92.3,재학26_1:91.8,시뮬1:77.1,시뮬2:81.45,시뮬3:95.75},
+  {계열:'인문사회',학과:'경찰행정학과',학제:2,정원:40,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:97.4,재학26_1:105.1,시뮬1:78.03,시뮬2:82.54,시뮬3:97.05},
+  {계열:'인문사회',학과:'에이블자립학과',학제:3,정원:20,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:96.7,재학26_1:95,시뮬1:79,시뮬2:83.75,시뮬3:98.5},
+  {계열:'인문사회',학과:'사회복지상담학과',학제:2,정원:25,신입24:1,신입25:1,신입26:1,취업:null,재학25_1:100,재학26_1:104.4,시뮬1:80.5,시뮬2:85.62,시뮬3:100.75},
+  {계열:'인문사회',학과:'공공조달학과',학제:2,정원:30,신입24:null,신입25:null,신입26:1,취업:null,재학25_1:97.5,재학26_1:92.9,시뮬1:55.13,시뮬2:59.91,시뮬3:70.69},
+  {계열:'공학',학과:'컴퓨터정보학과',학제:3,정원:35,신입24:1,신입25:1,신입26:1,취업:44.2,재학25_1:85.3,재학26_1:81,시뮬1:79.9,시뮬2:85.98,시뮬3:93.22},
+  {계열:'공학',학과:'인공지능소프트웨어학과',학제:3,정원:35,신입24:0.9667,신입25:0.9143,신입26:1,취업:50,재학25_1:69.5,재학26_1:71,시뮬1:75.68,시뮬2:81.28,시뮬3:86.6},
+  {계열:'공학',학과:'영상디자인학과',학제:3,정원:30,신입24:null,신입25:1,신입26:1,취업:null,재학25_1:96,재학26_1:102.6,시뮬1:null,시뮬2:76.92,시뮬3:90.51},
+  {계열:'공학',학과:'광고디자인학과',학제:3,정원:26,신입24:null,신입25:1,신입26:1,취업:null,재학25_1:93.3,재학26_1:73.2,시뮬1:71.33,시뮬2:75.66,시뮬3:88.99},
+  {계열:'공학',학과:'게임디자인학과',학제:3,정원:26,신입24:null,신입25:1,신입26:1,취업:null,재학25_1:100,재학26_1:87,시뮬1:75.5,시뮬2:80.88,시뮬3:95.25},
+  {계열:'공학',학과:'건축디자인과',학제:3,정원:49,신입24:0.9636,신입25:0.98,신입26:1,취업:83.3,재학25_1:63.6,재학26_1:77.3,시뮬1:79.69,시뮬2:86.84,시뮬3:87.24},
+  {계열:'예체능',학과:'시각미디어디자인학과',학제:3,정원:35,신입24:0.973,신입25:0.9722,신입26:1,취업:40,재학25_1:74.3,재학26_1:82.4,시뮬1:77.14,시뮬2:82.59,시뮬3:89.93},
+  {계열:'예체능',학과:'레저스포츠케어과',학제:2,정원:40,신입24:1,신입25:1,신입26:1,취업:58.3,재학25_1:90,재학26_1:103.8,시뮬1:82.46,시뮬2:89.53,시뮬3:94.94},
 ];
 
-let barChart, pieChart, lineChart;
+const catColor = {자연과학:'#7F77DD',인문사회:'#1D9E75',공학:'#EF9F27',예체능:'#D4537E'};
+let barChart, pieChart, simChart, riskChart, jobChart;
 
-function getFiltered() {
-  const yr = +document.getElementById('sel-year').value;
-  const cat = document.getElementById('sel-dept').value;
-  const sort = document.getElementById('sel-sort').value;
-  let data = raw
-    .filter(d => cat === 'all' || d.cat === cat)
-    .map(d => ({
-      dept: d.dept, cat: d.cat,
-      quota: d.q[yr], enrolled: d.e[yr],
-      rate: Math.round(d.e[yr] / d.q[yr] * 100),
-      prevRate: yr > 2022 ? Math.round(d.e[yr-1] / d.q[yr-1] * 100) : null
-    }));
-  if (sort === 'rate_asc')   data.sort((a,b) => a.rate - b.rate);
-  if (sort === 'rate_desc')  data.sort((a,b) => b.rate - a.rate);
-  if (sort === 'quota_desc') data.sort((a,b) => b.quota - a.quota);
-  return data;
+function pct(v) { return v != null ? Math.round(v*100)+'%' : '-'; }
+function fv(v,d=1) { return v != null ? v.toFixed(d) : '-'; }
+
+function simKey() { return document.getElementById('sel-sim').value; }
+
+function statusBadge(score) {
+  if (score == null) return '<span class="badge na">데이터없음</span>';
+  if (score >= 90) return '<span class="badge good">우수</span>';
+  if (score >= 80) return '<span class="badge warn">보통</span>';
+  return '<span class="badge bad">위험</span>';
 }
 
-function statusBadge(rate) {
-  if (rate >= 90) return '<span class="badge good">우수</span>';
-  if (rate >= 75) return '<span class="badge warn">보통</span>';
-  return '<span class="badge bad">미달</span>';
+function riskBadge(d) {
+  let risk = 0;
+  if (d.신입25 != null && d.신입25 < 0.9) risk++;
+  if (d.신입26 != null && d.신입26 < 0.9) risk++;
+  if (d.재학26_1 != null && d.재학26_1 < 80) risk++;
+  if (d.시뮬2 != null && d.시뮬2 < 80) risk++;
+  if (risk >= 3) return '<span class="badge bad">긴급</span>';
+  if (risk >= 2) return '<span class="badge warn">주의</span>';
+  if (risk >= 1) return '<span class="badge" style="background:#E6F1FB;color:#042C53">관찰</span>';
+  return '<span class="badge good">정상</span>';
+}
+
+function getFiltered() {
+  const cat = document.getElementById('sel-cat').value;
+  const sort = document.getElementById('sel-sort').value;
+  const sk = simKey();
+  let arr = cat === 'all' ? [...data] : data.filter(d => d.계열 === cat);
+  if (sort === 'sim_asc') arr.sort((a,b) => (a[sk]??0) - (b[sk]??0));
+  if (sort === 'sim_desc') arr.sort((a,b) => (b[sk]??0) - (a[sk]??0));
+  if (sort === 'quota_desc') arr.sort((a,b) => b.정원 - a.정원);
+  return arr;
 }
 
 function render() {
-  const data = getFiltered();
-  const yr = +document.getElementById('sel-year').value;
-  document.getElementById('last-updated').textContent = yr + '학년도 기준';
+  const arr = getFiltered();
+  const sk = simKey();
 
-  const totalQ = data.reduce((s,d) => s + d.quota, 0);
-  const totalE = data.reduce((s,d) => s + d.enrolled, 0);
-  const avgRate = Math.round(totalE / totalQ * 100);
-  const badCount = data.filter(d => d.rate < 75).length;
+  const totalQ = arr.reduce((s,d)=>s+d.정원,0);
+  const withScore = arr.filter(d=>d[sk]!=null);
+  const avgSim = withScore.length ? (withScore.reduce((s,d)=>s+d[sk],0)/withScore.length).toFixed(1) : '-';
+  const danger = arr.filter(d=>d[sk]!=null&&d[sk]<80).length;
+  const good = arr.filter(d=>d[sk]!=null&&d[sk]>=90).length;
+  const avgJob = (()=>{const jd=arr.filter(d=>d.취업!=null);return jd.length?(jd.reduce((s,d)=>s+d.취업,0)/jd.length).toFixed(1):'-';})();
+
   document.getElementById('stat-cards').innerHTML = `
-    <div class="stat"><div class="stat-label">총 모집정원</div><div class="stat-val">${totalQ.toLocaleString()}명</div></div>
-    <div class="stat"><div class="stat-label">총 입학자수</div><div class="stat-val">${totalE.toLocaleString()}명</div></div>
-    <div class="stat"><div class="stat-label">평균 충원율</div><div class="stat-val" style="color:${avgRate>=85?'#1D9E75':avgRate>=75?'#BA7517':'#D85A30'}">${avgRate}%</div></div>
-    <div class="stat"><div class="stat-label">미달 학과</div><div class="stat-val" style="color:${badCount>0?'#D85A30':'#1D9E75'}">${badCount}개</div></div>
+    <div class="stat"><div class="stat-label">총 학과수</div><div class="stat-val">${arr.length}개</div></div>
+    <div class="stat"><div class="stat-label">총 입학정원</div><div class="stat-val">${totalQ.toLocaleString()}명</div></div>
+    <div class="stat"><div class="stat-label">평균 시뮬점수</div><div class="stat-val" style="color:${parseFloat(avgSim)>=85?'#1D9E75':parseFloat(avgSim)>=75?'#BA7517':'#D85A30'}">${avgSim}</div></div>
+    <div class="stat"><div class="stat-label">위험 학과 (80점↓)</div><div class="stat-val" style="color:${danger>0?'#D85A30':'#1D9E75'}">${danger}개</div></div>
+    <div class="stat"><div class="stat-label">평균 취업률</div><div class="stat-val">${avgJob}%</div></div>
   `;
 
-  document.getElementById('tbl-body').innerHTML = data.map(d => {
-    const diff = d.prevRate != null ? d.rate - d.prevRate : null;
-    const diffStr = diff != null ? (diff > 0 ? `+${diff}%` : diff === 0 ? '0%' : `${diff}%`) : '-';
-    const diffColor = diff != null ? (diff > 0 ? '#1D9E75' : diff < 0 ? '#D85A30' : '#888') : '#888';
-    const miss = Math.max(0, d.quota - d.enrolled);
-    return `<tr>
-      <td>${d.dept}</td>
-      <td>${d.cat}</td>
-      <td>${d.quota}명</td>
-      <td>${d.enrolled}명</td>
-      <td style="font-weight:600;color:${d.rate>=90?'#1D9E75':d.rate>=75?'#BA7517':'#D85A30'}">${d.rate}%</td>
-      <td style="color:${diffColor}">${diffStr}</td>
-      <td style="color:${miss>0?'#D85A30':'#1D9E75'}">${miss > 0 ? miss+'명' : '-'}</td>
-      <td>${statusBadge(d.rate)}</td>
-    </tr>`;
-  }).join('');
+  // 상세 테이블
+  document.getElementById('tbl-body').innerHTML = arr.map(d => `<tr>
+    <td><span style="font-size:10px;padding:1px 6px;border-radius:4px;background:${catColor[d.계열]}22;color:${catColor[d.계열]}">${d.계열}</span></td>
+    <td title="${d.학과}">${d.학과}</td>
+    <td>${d.학제}년</td>
+    <td>${d.정원}명</td>
+    <td style="color:${d.신입24!=null&&d.신입24<0.9?'#D85A30':'#1a1a1a'}">${pct(d.신입24)}</td>
+    <td style="color:${d.신입25!=null&&d.신입25<0.9?'#D85A30':'#1a1a1a'}">${pct(d.신입25)}</td>
+    <td style="color:${d.신입26!=null&&d.신입26<0.9?'#D85A30':'#1a1a1a'}">${pct(d.신입26)}</td>
+    <td style="color:${d.취업!=null&&d.취업<60?'#D85A30':'#1a1a1a'}">${d.취업!=null?d.취업+'%':'-'}</td>
+    <td style="color:${d.재학25_1<75?'#D85A30':'#1a1a1a'}">${d.재학25_1}%</td>
+    <td style="color:${d.재학26_1<75?'#D85A30':'#1a1a1a'}">${d.재학26_1}%</td>
+    <td style="font-weight:600;color:${d[sk]>=90?'#1D9E75':d[sk]>=80?'#BA7517':'#D85A30'}">${d[sk]!=null?d[sk].toFixed(1):'-'}</td>
+    <td>${statusBadge(d[sk])}</td>
+  </tr>`).join('');
 
+  // 막대 차트 — 재학충원율
   if (barChart) barChart.destroy();
   barChart = new Chart(document.getElementById('chart-bar'), {
-    type: 'bar',
-    data: {
-      labels: data.map(d => d.dept.replace('학과','').replace('과','')),
-      datasets: [
-        { label: '모집정원', data: data.map(d => d.quota), backgroundColor: '#AFA9EC' },
-        { label: '입학자수', data: data.map(d => d.enrolled), backgroundColor: '#1D9E75' },
+    type:'bar',
+    data:{
+      labels: arr.map(d=>d.학과.length>6?d.학과.slice(0,6)+'…':d.학과),
+      datasets:[
+        {label:'2025-1학기',data:arr.map(d=>d.재학25_1),backgroundColor:'#AFA9EC'},
+        {label:'2026-1학기',data:arr.map(d=>d.재학26_1),backgroundColor:'#1D9E75'},
       ]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 10, padding: 8 } } },
-      scales: {
-        x: { ticks: { font: { size: 10 }, maxRotation: 35, autoSkip: false } },
-        y: { ticks: { font: { size: 11 } } }
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:10,padding:8}}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:40,autoSkip:false}},
+        y:{min:0,max:120,ticks:{font:{size:10},callback:v=>v+'%'}}
       }
     }
   });
 
-  const catMap = {};
-  data.forEach(d => { catMap[d.cat] = (catMap[d.cat] || 0) + d.quota; });
-  const catKeys = Object.keys(catMap);
+  // 도넛 차트
   if (pieChart) pieChart.destroy();
+  const catMap = {};
+  arr.forEach(d=>{catMap[d.계열]=(catMap[d.계열]||0)+d.정원;});
+  const ckeys = Object.keys(catMap);
   pieChart = new Chart(document.getElementById('chart-pie'), {
-    type: 'doughnut',
-    data: {
-      labels: catKeys,
-      datasets: [{ data: catKeys.map(k => catMap[k]), backgroundColor: ['#7F77DD','#1D9E75','#EF9F27','#D4537E'], borderWidth: 0 }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '60%',
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10, boxWidth: 10 } } }
-    }
+    type:'doughnut',
+    data:{labels:ckeys,datasets:[{data:ckeys.map(k=>catMap[k]),backgroundColor:ckeys.map(k=>catColor[k]||'#888'),borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:10,boxWidth:10}}}}
   });
 
-  const years = [2022, 2023, 2024];
-  const lineColors = ['#7F77DD','#1D9E75','#EF9F27','#D4537E','#378ADD','#D85A30'];
-  const lineDatasets = data.slice(0, 5).map((d, i) => ({
-    label: d.dept.replace('학과','').replace('과',''),
-    data: years.map(y => {
-      const r = raw.find(x => x.dept === d.dept);
-      return Math.round(r.e[y] / r.q[y] * 100);
-    }),
-    borderColor: lineColors[i], backgroundColor: 'transparent',
-    tension: 0.3, pointRadius: 4, borderWidth: 2
-  }));
-  if (lineChart) lineChart.destroy();
-  lineChart = new Chart(document.getElementById('chart-line'), {
-    type: 'line',
-    data: { labels: years.map(String), datasets: lineDatasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { font: { size: 11 }, padding: 8, boxWidth: 10 } } },
-      scales: {
-        y: { min: 50, max: 105, ticks: { font: { size: 11 }, callback: v => v + '%' } },
-        x: { ticks: { font: { size: 11 } } }
+  // 시뮬 비교 차트
+  if (simChart) simChart.destroy();
+  const simArr = [...data].filter(d=>d.시뮬2!=null).sort((a,b)=>a.시뮬2-b.시뮬2);
+  simChart = new Chart(document.getElementById('chart-sim'),{
+    type:'bar',
+    data:{
+      labels:simArr.map(d=>d.학과.length>6?d.학과.slice(0,6)+'…':d.학과),
+      datasets:[
+        {label:'시뮬1',data:simArr.map(d=>d.시뮬1),backgroundColor:'#AFA9EC'},
+        {label:'시뮬2',data:simArr.map(d=>d.시뮬2),backgroundColor:'#1D9E75'},
+        {label:'시뮬3',data:simArr.map(d=>d.시뮬3),backgroundColor:'#EF9F27'},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:40,autoSkip:false}},
+        y:{min:40,max:110,ticks:{font:{size:10}}}
       }
     }
   });
+
+  // 시뮬 테이블
+  const simSorted = [...data].filter(d=>d.시뮬2!=null).sort((a,b)=>a.시뮬2-b.시뮬2);
+  document.getElementById('sim-tbl').innerHTML = simSorted.map((d,i)=>`<tr>
+    <td style="font-weight:600;color:${i<5?'#D85A30':'#1a1a1a'}">${i+1}</td>
+    <td><span style="font-size:10px;padding:1px 5px;border-radius:4px;background:${catColor[d.계열]}22;color:${catColor[d.계열]}">${d.계열}</span></td>
+    <td title="${d.학과}">${d.학과}</td>
+    <td>${d.정원}명</td>
+    <td>
+      <div class="sim-bar">
+        <div class="sim-bar-track"><div class="sim-bar-fill" style="width:${Math.min(100,d.시뮬1||0)}%;background:#7F77DD"></div></div>
+        <span style="font-size:11px;min-width:36px;text-align:right">${d.시뮬1!=null?d.시뮬1.toFixed(1):'-'}</span>
+      </div>
+    </td>
+    <td>
+      <div class="sim-bar">
+        <div class="sim-bar-track"><div class="sim-bar-fill" style="width:${Math.min(100,d.시뮬2)}%;background:#1D9E75"></div></div>
+        <span style="font-size:11px;min-width:36px;text-align:right">${d.시뮬2.toFixed(1)}</span>
+      </div>
+    </td>
+    <td>
+      <div class="sim-bar">
+        <div class="sim-bar-track"><div class="sim-bar-fill" style="width:${Math.min(100,d.시뮬3)}%;background:#EF9F27"></div></div>
+        <span style="font-size:11px;min-width:36px;text-align:right">${d.시뮬3.toFixed(1)}</span>
+      </div>
+    </td>
+    <td>${statusBadge(d.시뮬2)}</td>
+  </tr>`).join('');
+
+  // 위험도 차트
+  if (riskChart) riskChart.destroy();
+  const riskArr = [...data].sort((a,b)=>(a.신입25||0)-(b.신입25||0)).slice(0,15);
+  riskChart = new Chart(document.getElementById('chart-risk'),{
+    type:'bar',
+    data:{
+      labels:riskArr.map(d=>d.학과.length>6?d.학과.slice(0,6)+'…':d.학과),
+      datasets:[
+        {label:'신입충원 25',data:riskArr.map(d=>d.신입25!=null?Math.round(d.신입25*100):null),backgroundColor:'#AFA9EC'},
+        {label:'신입충원 26',data:riskArr.map(d=>d.신입26!=null?Math.round(d.신입26*100):null),backgroundColor:'#1D9E75'},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:8,padding:6}}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:40,autoSkip:false}},
+        y:{min:0,max:110,ticks:{font:{size:10},callback:v=>v+'%'}}
+      }
+    }
+  });
+
+  // 취업률 차트
+  if (jobChart) jobChart.destroy();
+  const jobArr = data.filter(d=>d.취업!=null).sort((a,b)=>a.취업-b.취업);
+  jobChart = new Chart(document.getElementById('chart-job'),{
+    type:'bar',
+    data:{
+      labels:jobArr.map(d=>d.학과.length>6?d.학과.slice(0,6)+'…':d.학과),
+      datasets:[{label:'취업률',data:jobArr.map(d=>d.취업),backgroundColor:jobArr.map(d=>d.취업<60?'#F09595':d.취업<75?'#FAC775':'#5DCAA5')}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{font:{size:9},maxRotation:40,autoSkip:false}},
+        y:{min:0,max:100,ticks:{font:{size:10},callback:v=>v+'%'}}
+      }
+    }
+  });
+
+  // 위험도 테이블
+  const riskSorted = [...data].sort((a,b)=>(a.시뮬2||999)-(b.시뮬2||999));
+  document.getElementById('risk-tbl').innerHTML = riskSorted.map(d=>`<tr>
+    <td><span style="font-size:10px;padding:1px 5px;border-radius:4px;background:${catColor[d.계열]}22;color:${catColor[d.계열]}">${d.계열}</span></td>
+    <td title="${d.학과}">${d.학과}</td>
+    <td>${d.정원}명</td>
+    <td style="color:${d.신입25!=null&&d.신입25<0.9?'#D85A30':'#1a1a1a'}">${pct(d.신입25)}</td>
+    <td style="color:${d.신입26!=null&&d.신입26<0.9?'#D85A30':'#1a1a1a'}">${pct(d.신입26)}</td>
+    <td style="color:${d.취업!=null&&d.취업<60?'#D85A30':'#1a1a1a'}">${d.취업!=null?d.취업+'%':'-'}</td>
+    <td style="color:${d.재학26_1<75?'#D85A30':'#1a1a1a'}">${d.재학26_1}%</td>
+    <td style="font-weight:600;color:${d.시뮬2>=90?'#1D9E75':d.시뮬2>=80?'#BA7517':'#D85A30'}">${d.시뮬2!=null?d.시뮬2.toFixed(1):'-'}</td>
+    <td>${riskBadge(d)}</td>
+  </tr>`).join('');
+}
+
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['overview','sim','risk'][i]===t);
+  });
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
 }
 
 render();
